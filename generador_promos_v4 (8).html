@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Promos — Assist 365</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{--azul:#1978EB;--turquesa:#63D0CC;--azul-prof:#1A6F9E;--naranja:#F2612E;--gris-bg:#F3F5F7;--gris-txt:#3E4B5A;--negro:#1E2A3A;--borde:#D1D5DB;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--gris-bg);color:var(--gris-txt);min-height:100vh;}
+header{background:linear-gradient(135deg,var(--turquesa) 0%,var(--azul) 100%);padding:0 32px;display:flex;align-items:center;gap:14px;height:60px;box-shadow:0 2px 8px rgba(25,120,235,0.18);}
+.logo{width:34px;height:34px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo svg{width:18px;height:18px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.brand-name{font-size:13px;font-weight:700;color:#fff;letter-spacing:0.05em;}
+.sub{font-size:12px;color:rgba(255,255,255,0.75);}
+.container{max-width:1100px;margin:0 auto;padding:24px;}
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:#fff;border:1px solid var(--borde);border-radius:12px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.tab{flex:1;padding:8px 10px;font-size:13px;font-weight:500;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#888;text-align:center;transition:all 0.15s;font-family:inherit;}
+.tab:hover{background:var(--gris-bg);}
+.tab.active{background:var(--azul);color:#fff;}
+.section{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:18px 22px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.sec-title{font-size:11px;font-weight:600;color:var(--azul);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;}
+label{font-size:12px;color:var(--gris-txt);display:block;margin-bottom:4px;font-weight:500;}
+input,select{width:100%;height:36px;padding:0 10px;border:1px solid var(--borde);border-radius:8px;background:#fff;color:var(--negro);font-size:13px;font-family:inherit;outline:none;transition:border-color 0.15s;}
+input:focus,select:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(25,120,235,0.10);}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.row-period{display:grid;grid-template-columns:100px 1fr 1fr;gap:10px;align-items:center;margin-bottom:8px;}
+.max-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;}
+.max-card{background:var(--gris-bg);border:1px solid var(--borde);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:80px;}
+.max-card label{font-size:11px;color:var(--gris-txt);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;text-align:center;line-height:1.3;min-height:28px;display:flex;align-items:center;justify-content:center;margin:0;}
+.max-card input{height:36px;font-size:16px;font-weight:700;color:var(--azul);text-align:center;width:100%;margin-top:6px;}
+.ptabs{display:flex;gap:6px;margin-bottom:14px;}
+.ptab{padding:6px 16px;font-size:12px;font-weight:500;border:1px solid var(--borde);border-radius:6px;cursor:pointer;background:#fff;color:var(--gris-txt);transition:all 0.15s;}
+.ptab:hover{border-color:var(--azul);color:var(--azul);}
+.ptab.active{background:var(--azul);color:#fff;border-color:var(--azul);}
+.table-wrap{overflow-x:auto;}
+table.planes{width:100%;border-collapse:collapse;font-size:12px;}
+table.planes th{background:var(--azul);color:#fff;font-weight:600;font-size:11px;padding:9px 12px;text-align:center;white-space:nowrap;}
+table.planes th.plan-col{text-align:left;min-width:160px;}
+table.planes th:first-child{border-radius:8px 0 0 0;}
+table.planes th:last-child{border-radius:0 8px 0 0;}
+table.planes td{padding:5px 8px;border-bottom:1px solid var(--gris-bg);vertical-align:middle;background:#fff;text-align:center;}
+table.planes tr:nth-child(even) td{background:var(--gris-bg);}
+table.planes tr:hover td{background:rgba(25,120,235,0.04);}
+table.planes td.plan-name{font-weight:500;color:var(--negro);text-align:left;padding-left:12px;}
+table.planes td.disabled{background:#f0f0ee;color:#bbb;}
+.pct-in{width:60px;height:28px;padding:0 6px;border:1px solid var(--borde);border-radius:6px;font-size:12px;font-weight:600;color:var(--azul);text-align:center;font-family:inherit;background:#fff;outline:none;}
+.pct-in:focus{border-color:var(--azul);box-shadow:0 0 0 2px rgba(25,120,235,0.12);}
+.btn-gen{background:linear-gradient(135deg,var(--turquesa) 0%,var(--azul) 100%);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;width:100%;font-family:inherit;transition:opacity 0.15s;box-shadow:0 2px 8px rgba(25,120,235,0.25);}
+.btn-gen:hover{opacity:0.9;}
+.btn-sec{background:#fff;color:var(--azul);border:1px solid var(--azul);border-radius:8px;padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;}
+.btn-sec:hover{background:rgba(25,120,235,0.06);}
+.btn-import{background:#fff;color:var(--azul-prof);border:2px dashed var(--azul);border-radius:10px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;width:100%;font-family:inherit;text-align:center;display:block;transition:all 0.15s;}
+.btn-import:hover{background:rgba(25,120,235,0.04);}
+.role-mkt{font-size:10px;font-weight:700;color:var(--turquesa);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;text-align:center;}
+.role-ops{font-size:10px;font-weight:700;color:var(--naranja);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;text-align:center;}
+.hint{font-size:11px;color:#999;margin-top:6px;text-align:center;}
+.warn{font-size:11px;color:var(--naranja);font-weight:500;margin-top:8px;text-align:center;}
+.alert{background:rgba(99,208,204,0.10);border:1px solid var(--turquesa);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--azul-prof);margin-bottom:14px;font-weight:500;}
+.file-meta{background:var(--gris-bg);border:1px solid var(--borde);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--gris-txt);margin-top:10px;display:none;}
+.resumen-box{background:var(--gris-bg);border:1px solid var(--borde);border-radius:8px;padding:14px;font-size:12px;font-family:monospace;white-space:pre;line-height:1.8;max-height:260px;overflow-y:auto;}
+.toast{display:none;position:fixed;bottom:24px;right:24px;background:var(--azul);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;box-shadow:0 4px 16px rgba(25,120,235,0.3);}
+.diff-table{width:100%;border-collapse:collapse;font-size:12px;}
+.diff-table th{background:var(--negro);color:#fff;padding:8px 10px;text-align:left;}
+.diff-table th:first-child{border-radius:6px 0 0 0;}
+.diff-table th:last-child{border-radius:0 6px 0 0;}
+.diff-table td{padding:6px 10px;border-bottom:1px solid var(--gris-bg);}
+.diff-table tr:nth-child(even) td{background:var(--gris-bg);}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+  <div><div class="brand-name">ASSIST 365</div><div class="sub">Generador de promos — Back office</div></div>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('config')">1 · Mes y períodos <span style="font-size:9px;font-weight:700;color:var(--turquesa);letter-spacing:0.08em">MKT</span></button>
+    <button class="tab" onclick="switchTab('promos')">2 · Cargar promos <span style="font-size:9px;font-weight:700;color:var(--turquesa);letter-spacing:0.08em">MKT</span></button>
+    <button class="tab" onclick="switchTab('generar')">3 · Generar Excel <span style="font-size:9px;font-weight:700;color:var(--naranja);letter-spacing:0.08em">OPS</span></button>
+  </div>
+
+  <!-- TAB 1 -->
+  <div id="tab-config">
+    <div class="section">
+      <div class="sec-title">Datos del mes</div>
+      <div class="row3">
+        <div><label>Mes</label>
+          <select id="mes" onchange="renderPeriodos()">
+            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+        </div>
+        <div><label>Año</label><input type="number" id="anio" value="2026" min="2024" max="2030" onchange="renderPeriodos()"></div>
+        <div><label>Períodos</label>
+          <select id="nperiodos" onchange="renderPeriodos()">
+            <option value="1">1 período</option><option value="2">2 períodos</option>
+            <option value="3" selected>3 períodos</option><option value="4">4 períodos</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-title">Fechas de vigencia por período</div>
+      <div style="display:grid;grid-template-columns:100px 1fr 1fr;gap:10px;margin-bottom:6px">
+        <span></span><span style="font-size:11px;color:#999">Inicio</span><span style="font-size:11px;color:#999">Fin</span>
+      </div>
+      <p style="font-size:12px;color:#888;margin-bottom:12px">Seleccioná las fechas de inicio y fin para cada período.</p>
+      <div id="periodos-container"></div>
+    </div>
+    <button class="btn-gen" onclick="switchTab('promos')">Siguiente → Cargar promos</button>
+  </div>
+
+  <!-- TAB 2 -->
+  <div id="tab-promos" style="display:none">
+    <div class="section">
+      <div class="sec-title">% máximo por país</div>
+      <div id="periodo-activo-label" style="display:inline-flex;align-items:center;gap:8px;background:rgba(25,120,235,0.08);border:1px solid var(--azul);border-radius:8px;padding:6px 14px;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--azul)"></div>
+      <p style="font-size:12px;color:#888;margin-bottom:14px">Ingresá el tope de cada país — se aplica automáticamente a todos los planes. Podés escribir 55 o 0.55.</p>
+      <div class="max-grid" id="max-grid"></div>
+      <button class="btn-sec" style="width:auto;padding:8px 20px" onclick="aplicarMaximos()">Aplicar a todos los planes →</button>
+    </div>
+    <div class="section">
+      <div class="sec-title">Detalle por plan y país</div>
+      <div class="alert">Los valores se calculan automáticamente. Podés editar cualquier celda puntualmente.</div>
+      <div class="ptabs" id="ptabs"></div>
+      <div class="table-wrap">
+        <table class="planes">
+          <thead><tr>
+            <th class="plan-col">Plan</th>
+            <th>🇦🇷 Argentina</th><th>🇨🇱 Chile</th><th>🇨🇴 Colombia</th><th>🇺🇸 Estados Unidos</th><th>🌍 Resto del Mundo</th>
+          </tr></thead>
+          <tbody id="tabla-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
+      <div>
+        <div class="role-mkt">— MKT —</div>
+        <button class="btn-gen" onclick="exportarJSON()">⬇ Exportar y enviar a Operaciones (.json)</button>
+        <p class="warn">⚠ Guardá el .json — lo vas a necesitar si querés editar después.</p>
+        <label class="btn-import" style="margin-top:10px;padding:10px 16px;font-size:13px">
+          ⬆ Importar .json anterior para editar
+          <input type="file" accept=".json" onchange="importarJSON(event,false)" style="display:none">
+        </label>
+      </div>
+      <div>
+        <div class="role-ops">— Operaciones —</div>
+        <label class="btn-import">
+          ⬆ Importar .json de MKT
+          <input type="file" accept=".json" onchange="importarJSON(event,true)" style="display:none">
+        </label>
+        <p class="hint" style="margin-top:8px">Al importar verás qué cambió respecto al JSON anterior</p>
+      </div>
+    </div>
+    <div id="file-meta" class="file-meta"></div>
+  </div>
+
+  <!-- TAB 3 -->
+  <div id="tab-generar" style="display:none">
+    <div class="section" id="diff-section" style="display:none">
+      <div class="role-ops">— Operaciones — Cambios detectados</div>
+      <div id="diff-container"></div>
+    </div>
+    <div class="section">
+      <div class="sec-title">Resumen</div>
+      <div id="resumen" class="resumen-box">Completá los pasos anteriores.</div>
+    </div>
+    <div class="section">
+      <div class="role-ops">— Operaciones —</div>
+      <div class="sec-title">Descargar Excel por período</div>
+      <p style="font-size:13px;color:var(--gris-txt);margin-bottom:14px">Se genera un archivo por período, listo para subir al back office.</p>
+      <button class="btn-gen" onclick="generarTodos()" style="margin-bottom:10px">Descargar todos los períodos</button>
+      <div id="botones-periodos" style="display:grid;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PLANES=[
+  {n:'ESSENTIAL TRIP',     p:['ARG','CHI','COL','USA','RDM']},
+  {n:'WANDER TRAVEL',      p:['ARG','CHI','COL','USA','RDM']},
+  {n:'ARGENTINA CARE',     p:['CHI']},
+  {n:'BRASIL CARE',        p:['ARG','CHI']},
+  {n:'EUROPE CARE BASE',   p:['ARG','CHI','COL','USA','RDM']},
+  {n:'EUROPE CARE PRO',    p:['ARG','CHI','COL','USA','RDM']},
+  {n:'WORLD COVER',        p:['ARG','CHI','COL','USA','RDM']},
+  {n:'SAFE TRAVEL',        p:['ARG','CHI','COL','USA','RDM']},
+  {n:'PREMIUM COVER',      p:['ARG','CHI','COL','USA','RDM']},
+  {n:'WORLDCUP CARE',      p:['ARG','CHI','COL','USA','RDM']},
+  {n:'ELITE COVER',        p:['ARG','CHI','COL','USA','RDM']},
+  {n:'MILLION COVER',      p:['ARG','CHI','COL','USA','RDM']},
+  {n:'GLOBAL BACKPACKER',  p:['ARG','CHI','COL','USA','RDM']},
+  {n:'SAFE EXCHANGE',      p:['ARG','CHI','COL','USA','RDM']},
+  {n:'WORLD EXPLORER',     p:['ARG','CHI','COL','USA','RDM']},
+  {n:'MULTITRIP',          p:['ARG','CHI','COL','USA','RDM']},
+  {n:'MULTITRIP PLUS',     p:['ARG','CHI','COL','USA','RDM']},
+];
+const PAISES=[
+  {k:'ARG',nombre:'🇦🇷 ARGENTINA',bo:'ARGENTINA'},
+  {k:'CHI',nombre:'🇨🇱 CHILE',bo:'CHILE'},
+  {k:'COL',nombre:'🇨🇴 COLOMBIA',bo:'COLOMBIA'},
+  {k:'USA',nombre:'🇺🇸 ESTADOS UNIDOS',bo:'ESTADOS UNIDOS'},
+  {k:'RDM',nombre:'🌍 RESTO DEL MUNDO',bo:'TODOS LOS PAISES'},
+];
+const GRUPOS=[
+  {t:'Corta estadía',p:['ESSENTIAL TRIP','WANDER TRAVEL','ARGENTINA CARE','BRASIL CARE','EUROPE CARE BASE','EUROPE CARE PRO','WORLD COVER','SAFE TRAVEL','PREMIUM COVER','WORLDCUP CARE','ELITE COVER','MILLION COVER']},
+  {t:'Larga estadía',p:['GLOBAL BACKPACKER','SAFE EXCHANGE','WORLD EXPLORER']},
+  {t:'Multiviajes',p:['MULTITRIP','MULTITRIP PLUS']},
+];
+function getProv(n){return(['WORLD COVER','GLOBAL BACKPACKER','SAFE EXCHANGE','WORLD EXPLORER'].includes(n))?'WTA':'WM';}
+function getEdadMax(n){if(['GLOBAL BACKPACKER','SAFE EXCHANGE','WORLD EXPLORER'].includes(n))return 64;if(n.startsWith('MULTITRIP'))return 69;return 85;}
+function getDiasMax(n){if(['ELITE COVER','MILLION COVER'].includes(n))return 30;if(['GLOBAL BACKPACKER','SAFE EXCHANGE','WORLD EXPLORER'].includes(n)||n.startsWith('MULTITRIP'))return 365;return 89;}
+function calcPct(plan,mkt){
+  if(['ELITE COVER','MILLION COVER'].includes(plan))return Math.min(mkt,45);
+  if(['GLOBAL BACKPACKER','SAFE EXCHANGE','WORLD EXPLORER'].includes(plan))return mkt>60?30:25;
+  return mkt;
+}
+function fmtDate(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function fmtShort(v){return v?v.slice(8)+'/'+v.slice(5,7):'?';}
+function fmtDateBO(iso){if(!iso)return '';var p=iso.split('-');return p[1]+'/'+p[2]+'/'+p[0];}
+function showToast(msg,color){var t=document.getElementById('toast');t.textContent=msg;t.style.background=color||'var(--azul)';t.style.display='block';setTimeout(function(){t.style.display='none';},2800);}
+function autoFmt(el){var v=parseFloat(el.value);if(isNaN(v))return;if(v>1&&v<=100){}else if(v<=1)v=v*100;el.value=Math.round(v*10)/10;}
+
+var values=[];
+var currentPeriodo=0;
+var previousValues=null;
+
+function getPeriodos(){
+  var n=parseInt(document.getElementById('nperiodos').value);
+  var arr=[];
+  for(var i=0;i<n;i++){
+    arr.push({ini:document.getElementById('p'+i+'_ini')?document.getElementById('p'+i+'_ini').value:'',fin:document.getElementById('p'+i+'_fin')?document.getElementById('p'+i+'_fin').value:''});
+  }
+  return arr;
+}
+
+function initValues(){
+  var n=parseInt(document.getElementById('nperiodos').value);
+  values=[];
+  for(var i=0;i<n;i++){
+    var periodo=[];
+    for(var j=0;j<PLANES.length;j++){
+      var obj={};
+      for(var k=0;k<PAISES.length;k++)obj[PAISES[k].k]=null;
+      periodo.push(obj);
+    }
+    values.push(periodo);
+  }
+}
+
+function renderPeriodos(){
+  var n=parseInt(document.getElementById('nperiodos').value);
+  var mes=parseInt(document.getElementById('mes').value);
+  var anio=parseInt(document.getElementById('anio').value);
+  var diasMes=new Date(anio,mes,0).getDate();
+  var defs={1:[[1,diasMes]],2:[[1,15],[16,diasMes]],3:[[1,10],[11,18],[19,diasMes]],4:[[1,8],[9,15],[16,23],[24,diasMes]]};
+  var d=defs[n];
+  var html='';
+  for(var i=0;i<n;i++){
+    html+='<div class="row-period">';
+    html+='<span style="font-size:13px;font-weight:600;color:var(--negro)">Período '+(i+1)+'</span>';
+    html+='<input type="date" id="p'+i+'_ini" value="'+fmtDate(anio,mes,d[i][0])+'">';
+    html+='<input type="date" id="p'+i+'_fin" value="'+fmtDate(anio,mes,d[i][1])+'"></div>';
+  }
+  document.getElementById('periodos-container').innerHTML=html;
+  initValues();
+}
+
+function renderMaxGrid(){
+  var per=getPeriodos();
+  var ini=per[currentPeriodo]?per[currentPeriodo].ini:'';
+  var fin=per[currentPeriodo]?per[currentPeriodo].fin:'';
+  var lbl=document.getElementById('periodo-activo-label');
+  if(lbl)lbl.innerHTML='📅 Período '+(currentPeriodo+1)+'&nbsp;·&nbsp;'+ini+' → '+fin;
+  var html='';
+  for(var i=0;i<PAISES.length;i++){
+    html+='<div class="max-card"><label>'+PAISES[i].nombre+'</label>';
+    html+='<input type="number" step="1" min="0" max="100" placeholder="ej: 50" id="max_'+PAISES[i].k+'" onblur="autoFmt(this)" style="text-align:center;font-size:16px;font-weight:700;"></div>';
+  }
+  document.getElementById('max-grid').innerHTML=html;
+}
+
+function aplicarMaximos(){
+  for(var pi=0;pi<PAISES.length;pi++){
+    var el=document.getElementById('max_'+PAISES[pi].k);
+    if(!el)continue;
+    var v=parseFloat(el.value);
+    if(isNaN(v))continue;
+    for(var pli=0;pli<PLANES.length;pli++){
+      if(PLANES[pli].p.indexOf(PAISES[pi].k)<0)continue;
+      values[currentPeriodo][pli][PAISES[pi].k]=calcPct(PLANES[pli].n,v);
+    }
+  }
+  renderTabla();
+}
+
+function renderPtabs(){
+  var n=parseInt(document.getElementById('nperiodos').value);
+  var per=getPeriodos();
+  var html='';
+  for(var i=0;i<n;i++){
+    html+='<span class="ptab '+(i===currentPeriodo?'active':'')+'" onclick="cambiarPeriodo('+i+')">P'+(i+1)+' · '+fmtShort(per[i].ini)+'–'+fmtShort(per[i].fin)+'</span>';
+  }
+  document.getElementById('ptabs').innerHTML=html;
+}
+
+function cambiarPeriodo(i){currentPeriodo=i;renderMaxGrid();renderPtabs();renderTabla();}
+
+function renderTabla(){
+  var html='';
+  var ncols=PAISES.length+1;
+  for(var gi=0;gi<GRUPOS.length;gi++){
+    var g=GRUPOS[gi];
+    html+='<tr><td colspan="'+ncols+'" style="padding:16px 12px 6px;background:#fff"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:11px;font-weight:700;color:var(--azul);text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap">'+g.t+'</span><div style="flex:1;height:1px;background:var(--borde)"></div></div></td></tr>';
+    for(var pli=0;pli<PLANES.length;pli++){
+      var plan=PLANES[pli];
+      if(g.p.indexOf(plan.n)<0)continue;
+      html+='<tr><td class="plan-name">'+plan.n+'</td>';
+      for(var ki=0;ki<PAISES.length;ki++){
+        var pk=PAISES[ki].k;
+        if(plan.p.indexOf(pk)<0){
+          html+='<td class="disabled">—</td>';
+        } else {
+          var v=values[currentPeriodo]&&values[currentPeriodo][pli]?values[currentPeriodo][pli][pk]:null;
+          var disp=(v!==null&&v!==undefined)?v:'';
+          html+='<td><input type="number" class="pct-in" step="1" min="0" max="100" value="'+disp+'" placeholder="—" data-pli="'+pli+'" data-pk="'+pk+'" onblur="setCellValue('+pli+',\''+pk+'\',this.value)"></td>';
+        }
+      }
+      html+='</tr>';
+    }
+  }
+  document.getElementById('tabla-body').innerHTML=html;
+}
+
+function setCellValue(pli,pk,val){
+  var v=val===''?null:parseFloat(val);
+  if(v!==null&&isNaN(v))return;
+  if(!values[currentPeriodo])return;
+  if(!values[currentPeriodo][pli])return;
+  values[currentPeriodo][pli][pk]=v;
+}
+
+function exportarJSON(){
+  // Mostrar modal para datos del ticket
+  var modal = document.getElementById('modal-envio');
+  modal.style.display = 'flex';
+}
+
+function cerrarModal(){
+  document.getElementById('modal-envio').style.display = 'none';
+}
+
+async function enviarAZendesk(){
+  var mail = document.getElementById('modal-mail').value.trim();
+  var tipo = document.getElementById('modal-tipo').value;
+  var campana = document.getElementById('modal-campana').value.trim();
+
+  if(!mail){showToast('Ingresá tu mail','#c0410f');return;}
+
+  var n=parseInt(document.getElementById('nperiodos').value);
+  var meses=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var mes=document.getElementById('mes').value;
+  var anio=document.getElementById('anio').value;
+  var data={version:'2.0',exportadoEn:new Date().toISOString(),mes:mes,anio:anio,nperiodos:n,periodos:getPeriodos(),values:values};
+  var jsonStr = JSON.stringify(data,null,2);
+
+  // Descargar el JSON
+  var blob=new Blob([jsonStr],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='promos_'+meses[parseInt(mes)]+'_'+anio+'.json';
+  a.click();URL.revokeObjectURL(url);
+
+  // Crear ticket en Zendesk
+  var btn = document.getElementById('btn-enviar-zd');
+  btn.textContent = 'Enviando...';
+  btn.disabled = true;
+
+  try {
+    // 1. Subir adjunto
+    var uploadResp = await fetch('https://assist-365help.zendesk.com/api/v2/uploads?filename=promos_'+meses[parseInt(mes)]+'_'+anio+'.json', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + btoa('adm@assist-365.com/token:uwI23xWqAAvwPKV4CKQ8wrwx45tNLjvEG5RWMd4T'),
+        'Content-Type': 'application/octet-stream'
+      },
+      body: blob
+    });
+    var uploadData = await uploadResp.json();
+    var token = uploadData.upload.token;
+
+    // Armar descripción
+    var per = getPeriodos();
+    var desc = 'Solicitud de ' + (tipo === 'carga_mensual' ? 'carga mensual' : 'modificación en curso') + ' — ' + meses[parseInt(mes)] + ' ' + anio + '\n\n';
+    if(campana) desc += 'Campaña: ' + campana + '\n\n';
+    per.forEach(function(p,i){ desc += 'Período ' + (i+1) + ': ' + p.ini + ' → ' + p.fin + '\n'; });
+
+    // 2. Crear ticket
+    var ticketResp = await fetch('https://assist-365help.zendesk.com/api/v2/tickets', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + btoa('adm@assist-365.com/token:uwI23xWqAAvwPKV4CKQ8wrwx45tNLjvEG5RWMd4T'),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ticket: {
+          subject: 'Solicitud de carga de promociones',
+          comment: { body: desc, uploads: [token] },
+          requester: { email: mail },
+          ticket_form_id: 51343100616724,
+          brand_id: 49910735994644,
+          custom_fields: []
+        }
+      })
+    });
+
+    if(ticketResp.ok){
+      var td = await ticketResp.json();
+      cerrarModal();
+      document.getElementById('modal-mail').value = '';
+      document.getElementById('modal-campana').value = '';
+      showToast('✅ Ticket #' + td.ticket.id + ' creado — Operaciones ya lo tiene!');
+    } else {
+      throw new Error('Error al crear ticket');
+    }
+  } catch(err) {
+    showToast('✗ Error al enviar a Zendesk — el .json se descargó igual','#c0410f');
+  }
+
+  btn.textContent = 'Enviar a Operaciones';
+  btn.disabled = false;
+}
+
+
+function importarJSON(event,esOps){
+  var file=event.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(esOps)previousValues=values.length?JSON.parse(JSON.stringify(values)):null;
+      document.getElementById('mes').value=data.mes||new Date().getMonth()+1;
+      document.getElementById('anio').value=data.anio||new Date().getFullYear();
+      document.getElementById('nperiodos').value=data.nperiodos||3;
+      renderPeriodos();
+      if(data.periodos){
+        for(var i=0;i<data.periodos.length;i++){
+          var ini=document.getElementById('p'+i+'_ini');
+          var fin=document.getElementById('p'+i+'_fin');
+          if(ini&&data.periodos[i].ini)ini.value=data.periodos[i].ini;
+          if(fin&&data.periodos[i].fin)fin.value=data.periodos[i].fin;
+        }
+      }
+      if(data.values)values=data.values;
+      currentPeriodo=0;
+      var meta=document.getElementById('file-meta');
+      var meses=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      meta.style.display='block';
+      meta.innerHTML='<strong>Archivo importado:</strong> '+file.name+' &nbsp;·&nbsp; <strong>Mes:</strong> '+meses[parseInt(data.mes)]+' '+data.anio;
+      if(esOps){
+        renderDiff(previousValues,values,data);
+        switchTab('generar');
+        showToast('✓ JSON importado — revisá los cambios en el paso 3');
+      } else {
+        renderMaxGrid();renderPtabs();renderTabla();
+        showToast('✓ Configuración cargada');
+      }
+    }catch(err){showToast('✗ Error al leer el archivo','#c0410f');}
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+function renderDiff(prev,curr,data){
+  var sec=document.getElementById('diff-section');
+  var con=document.getElementById('diff-container');
+  if(!prev){sec.style.display='none';return;}
+  var per=data.periodos||[];
+  var cambios=[];
+  for(var pi=0;pi<per.length;pi++){
+    for(var pli=0;pli<PLANES.length;pli++){
+      for(var ki=0;ki<PAISES.length;ki++){
+        var pk=PAISES[ki].k;
+        if(PLANES[pli].p.indexOf(pk)<0)continue;
+        var vP=prev[pi]&&prev[pi][pli]?prev[pi][pli][pk]:null;
+        var vC=curr[pi]&&curr[pi][pli]?curr[pi][pli][pk]:null;
+        if(vP!==vC){
+          cambios.push({periodo:'P'+(pi+1)+' ('+fmtShort(per[pi].ini)+'–'+fmtShort(per[pi].fin)+')',pais:PAISES[ki].nombre,plan:PLANES[pli].n,de:vP!==null&&vP!==undefined?vP+'%':'—',a:vC!==null&&vC!==undefined?vC+'%':'—'});
+        }
+      }
+    }
+  }
+  if(!cambios.length){sec.style.display='block';con.innerHTML='<p style="font-size:13px;color:#0e6b68;font-weight:500">✓ Sin cambios respecto al JSON anterior.</p>';return;}
+  sec.style.display='block';
+  var html='<table class="diff-table"><thead><tr><th>Período</th><th>País</th><th>Plan</th><th style="text-align:center">Antes</th><th style="text-align:center">Ahora</th></tr></thead><tbody>';
+  for(var i=0;i<cambios.length;i++){
+    var c=cambios[i];
+    html+='<tr><td>'+c.periodo+'</td><td>'+c.pais+'</td><td style="font-weight:500;color:var(--negro)">'+c.plan+'</td>';
+    html+='<td style="text-align:center;color:#888;text-decoration:line-through">'+c.de+'</td>';
+    html+='<td style="text-align:center;font-weight:700;color:var(--naranja)">'+c.a+'</td></tr>';
+  }
+  html+='</tbody></table>';
+  con.innerHTML=html;
+}
+
+function renderResumen(){
+  var per=getPeriodos();
+  var mes=document.getElementById('mes').value;
+  var anio=document.getElementById('anio').value;
+  var meses=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var lines=[meses[parseInt(mes)]+' '+anio,'─────────────────────────────'];
+  for(var pi=0;pi<per.length;pi++){
+    lines.push('');
+    lines.push('P'+(pi+1)+'  '+per[pi].ini+' → '+per[pi].fin);
+    for(var ki=0;ki<PAISES.length;ki++){
+      var pk=PAISES[ki];
+      var hasVal=false;
+      for(var pli=0;pli<PLANES.length;pli++){
+        var v=values[pi]&&values[pi][pli]?values[pi][pli][pk.k]:null;
+        if(v!==null&&v!==undefined){hasVal=true;break;}
+      }
+      if(!hasVal)continue;
+      lines.push('  '+pk.nombre);
+      for(var pli2=0;pli2<PLANES.length;pli2++){
+        var v2=values[pi]&&values[pi][pli2]?values[pi][pli2][pk.k]:null;
+        if(v2!==null&&v2!==undefined)lines.push('    '+PLANES[pli2].n+': '+v2+'%');
+      }
+    }
+  }
+  document.getElementById('resumen').innerText=lines.join('\n');
+  renderBotonesPeriodos();
+}
+
+function renderBotonesPeriodos(){
+  var per=getPeriodos();
+  var n=per.length;
+  var html='';
+  if(n>1){
+    html='<div style="display:grid;grid-template-columns:repeat('+Math.min(n,4)+',1fr);gap:8px;margin-top:0">';
+    for(var i=0;i<n;i++){
+      html+='<button class="btn-sec" onclick="generarPeriodo('+i+')">P'+(i+1)+' · '+fmtShort(per[i].ini)+'–'+fmtShort(per[i].fin)+'</button>';
+    }
+    html+='</div>';
+  }
+  document.getElementById('botones-periodos').innerHTML=html;
+}
+
+function generarPeriodo(pi){
+  var per=getPeriodos();
+  var mes=String(document.getElementById('mes').value).padStart(2,'0');
+  var anio=document.getElementById('anio').value;
+  var p=per[pi];
+  var rows=[['PAIS','PRODUCTO','PORCENTAJE','FORZADO','VIGENCIA INICIO','VIGENCIA FINAL','EDAD BASE','EDAD MAX','DIAS BASE','DIAS MAX','GRUPO DE PRODUCTOS','CANAL','PROVEEDOR']];
+  for(var ki=0;ki<PAISES.length;ki++){
+    var pais=PAISES[ki];
+    for(var pli=0;pli<PLANES.length;pli++){
+      var plan=PLANES[pli];
+      if(plan.p.indexOf(pais.k)<0)continue;
+      var v=values[pi]&&values[pi][pli]?values[pi][pli][pais.k]:null;
+      if(v===null||v===undefined||v==='')continue;
+      var pct=parseFloat(v)/100;
+      rows.push([pais.bo,plan.n,pct,'SI',fmtDateBO(p.ini),fmtDateBO(p.fin),0,getEdadMax(plan.n),3,getDiasMax(plan.n),'','TODOS',getProv(plan.n)]);
+    }
+  }
+  if(rows.length<2){showToast('Sin datos para este período','#c0410f');return;}
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:18},{wch:22},{wch:12},{wch:10},{wch:20},{wch:20},{wch:10},{wch:10},{wch:10},{wch:10},{wch:18},{wch:8},{wch:12}];
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Estructura- CARGA DE PROMOS');
+  XLSX.writeFile(wb, (p.ini || 'sin-fecha') + '_promociones.xlsx');
+  showToast('✓ Período '+(pi+1)+' descargado');
+}
+
+function generarTodos(){
+  var per=getPeriodos();
+  var count=0;
+  for(var i=0;i<per.length;i++){generarPeriodo(i);count++;}
+  showToast('✓ '+count+' archivos descargados');
+}
+
+function switchTab(tab){
+  var tabs=['config','promos','generar'];
+  for(var i=0;i<tabs.length;i++){
+    document.getElementById('tab-'+tabs[i]).style.display=tabs[i]===tab?'':'none';
+  }
+  var btns=document.querySelectorAll('.tab');
+  for(var i=0;i<btns.length;i++){
+    btns[i].classList.toggle('active',tabs[i]===tab);
+  }
+  if(tab==='promos'){
+    var n=parseInt(document.getElementById('nperiodos').value);
+    if(!values.length||values.length!==n)initValues();
+    renderMaxGrid();renderPtabs();renderTabla();
+  }
+  if(tab==='generar')renderResumen();
+}
+
+(function(){
+  var h=new Date();
+  document.getElementById('mes').value=h.getMonth()+1;
+  document.getElementById('anio').value=h.getFullYear();
+  renderPeriodos();
+})();
+</script>
+
+<div id="modal-envio" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:28px 32px;width:440px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+    <h3 style="font-size:16px;font-weight:700;color:var(--negro);margin-bottom:6px">Enviar a Operaciones</h3>
+    <p style="font-size:12px;color:#888;margin-bottom:20px">Se descarga el .json y se crea el ticket en Zendesk automáticamente.</p>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:600;color:var(--gris-txt);display:block;margin-bottom:4px">Tu mail *</label>
+      <input type="email" id="modal-mail" placeholder="tu@assist-365.com" style="width:100%;height:36px;padding:0 10px;border:1px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;outline:none;">
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:600;color:var(--gris-txt);display:block;margin-bottom:4px">Tipo de solicitud</label>
+      <select id="modal-tipo" style="width:100%;height:36px;padding:0 10px;border:1px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;outline:none;">
+        <option value="carga_mensual">Carga mensual</option>
+        <option value="modificacion_en_curso">Modificación en curso</option>
+      </select>
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:12px;font-weight:600;color:var(--gris-txt);display:block;margin-bottom:4px">Nombre de campaña (opcional)</label>
+      <input type="text" id="modal-campana" placeholder="ej: Promo julio verano" style="width:100%;height:36px;padding:0 10px;border:1px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;outline:none;">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="cerrarModal()" style="height:38px;border:1px solid var(--borde);border-radius:8px;background:#fff;color:var(--gris-txt);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">Cancelar</button>
+      <button id="btn-enviar-zd" onclick="enviarAZendesk()" style="height:38px;background:linear-gradient(135deg,var(--turquesa) 0%,var(--azul) 100%);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Enviar a Operaciones</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
